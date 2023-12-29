@@ -1,1 +1,116 @@
+const puppeteer = require('puppeteer')
+//we have to import code from file code.js
+
+const codeObj = require('./codes')
+const loginlink = 'https://www.hackerrank.com/login'
+const email = 'sumannishant89@gmail.com'
+const password = '890525'
+
+let broswserOpen = puppeteer.launch({
+headless:false,
+//maximized screen
+args:['--start-maximized'],
+
+defaultViewport:null
+})
+
+let page
+// then.function saare promise chain hain 
+broswserOpen.then(function(browserobj){
+    let broswserOpenPromise = browserobj.newPage()
+    return broswserOpenPromise;
+}).then (function(newTab){
+    page = newTab
+    let hackerRankOpenPromise = newTab.goto(loginlink)
+    return hackerRankOpenPromise
+}).then(function(){
+    let emailisEntered = page.type("input[type = 'text']" ,email ,{delay:20})
+    return emailisEntered
+}).then(function(){
+    let PasswordisEntred  =page.type("input[type='password']" , password , {delay:20})
+    return PasswordisEntred
+}).then(function(){
+    let loginButtonClick = page.click('button[data-analytics="LoginPassword"]',{delay:20})
+    return loginButtonClick
+}).then(function(){
+ let clickOnAlgoPromise =waitAnsClick('.topic-card a[data-attr1="algorithms"]',page)
+  return clickOnAlgoPromise
+}).then(function(){
+ let getToWarmup = waitAnsClick('input[value="warmup"]',page)
+ return getToWarmup
+}).then (function(){
+    //$$ used for document.queryselector(all)function ke liye use karte hain
+    let allChallengesPromise = page.$$('.ui-btn.ui-btn-normal.primary-cta.ui-btn-primary.ui-btn-styled',{delay:20})
+    return allChallengesPromise
+}).then(function(questionsArr){
+      console.log('number of questions',questionsArr.length) 
+      let questionWillBeSolved = questionSolver(page,questionsArr[0],codeObj.answer[0])
+      return questionWillBeSolved 
+})
+
+
+
+
+
+
+function waitAnsClick(selector,cPage){
+    return new Promise(function(resolve,reject){
+    let waitForModelPromise = cPage.waitForSelector(selector)
+     waitForModelPromise.then(function(){
+        let clickmodel = cPage.click(selector)
+        return clickmodel
+    }).then(function(){
+        resolve()
+    }).catch(function(err){
+        reject()
+        })
+     })
+}
+function questionSolver(page,question,answer){
+    return new Promise((resolve, reject) => {
+        let questionWillBeClicked = question.click()
+        questionWillBeClicked.then(function(){
+           let EditorInFocusPromise = waitAnsClick('.monaco-editor.no-user-select.showUnused.showDeprecated.vs',page)
+           return EditorInFocusPromise
+        }).then(function(){
+            return waitAnsClick('.checkbox-input',page)
+        }).then(function(){
+           return page.waitForSelector('.input.text-area.custominput.auto-width' , page)
+        }).then(function(){
+            return page.type('.input.text-area.custominput.auto-width',answer,{delay:10})
+        }).then(function(){
+            let ctrlIsPressed = page.keyboard.down('Control')
+            return ctrlIsPressed
+        }).then(function(){
+            let AisPressed  =page.keyboard.press('A' , {delay:20})
+            return AisPressed
+        }).then(function(){
+            let XisPressed = page.keyboard.press('X' , {delay:100})
+            return XisPressed
+        }).then(function(){
+            let ctrlIsUnpressed = page.keyboard.up('Control')
+            return ctrlIsUnpressed
+        }).then(function(){
+            let EditorInFocusPromise = waitAnsClick('.monaco-editor.no-user-select.showUnused.showDeprecated.vs',page)
+            return EditorInFocusPromise  
+        }).then(function(){
+            let ctrlIsPressed = page.keyboard.down('Control')
+            return ctrlIsPressed
+        }).then(function(){
+            let AisPressed  =page.keyboard.press('A' , {delay:20})
+            return AisPressed
+        }).then(function(){
+            let VisPressed  =page.keyboard.press('V' , {delay:15})
+            return VisPressed 
+        }).then(function(){
+            let ctrlIsUnpressed = page.keyboard.up('Control')
+            return ctrlIsUnpressed
+        }).then(function(){
+            let SubmitCodeIsPressed = waitAnsClick('.ui-btn.ui-btn-normal.ui-btn-secondary.pull-right.msR.hr-monaco-compile.hr-monaco__run-code.ui-btn-styled',page)
+            return SubmitCodeIsPressed
+
+        })
+        
+    })
+}   
 
